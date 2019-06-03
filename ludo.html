@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset=utf-8>
+      <title>Ludo</title>
+      <style>
+        body {margin: 0; overflow: hidden}
+        canvas {width: 100%; height: 100%; overflow: hidden}
+      </style>
+    </head>
+    <body>
+      <script src="js/three.js"></script>
+      <script>
+
+        // Definition of scene, camera and renderer
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x220000);
+        document.body.appendChild(renderer.domElement);
+
+        // Definition of geometry for each slot and for each piece of the ludo
+        var slot_geo = new THREE.BoxGeometry(1, 1, 0.2);
+        var piece_geo = new THREE.ConeGeometry(0.40, 1.25, 8, 1);
+
+        // Declarations of vectors in order to get each one of the slots and pieces
+        var slots = [];
+        var pieces = [];
+
+        // Global variables
+        var setPiece = false;
+
+        // Material definitions: colors for the board
+        var mat_clear = new THREE.MeshLambertMaterial({color: 0xffff88});
+        var mat_dark = new THREE.MeshLambertMaterial({color: 0x000000});
+        var mat_highlight = new THREE.MeshBasicMaterial({color:0xAAFFAA});
+
+        // Material definitions: colors for each team in LUDO
+        var mat_green = new THREE.MeshLambertMaterial({color: 0x33cc33});
+        var mat_red = new THREE.MeshLambertMaterial({color: 0xff0000});
+        var mat_blue = new THREE.MeshLambertMaterial({color: 0x0033cc});
+        var mat_yellow = new THREE.MeshLambertMaterial({color: 0xffff00});
+
+        // Initial definition of each of the geometries implemented
+        for (var i=0; i<13; i++)
+          for (var j=0; j<13; j++)
+          {
+            if ((i==6 && j>0 && j<6) || (i==5 && j==1) || (i>1 && i<4 && j>0 && j<3)) { // board - yellow
+              var slot = new THREE.Mesh(slot_geo, mat_yellow);
+              slot.color = 'y';
+              slot.is_special = true;
+              if (j==1 && i==5) slot.is_special = false;
+              else if (i>1 && i<4 && j>0 && j<3){
+                var piece = new THREE.Mesh(piece_geo, mat_yellow)
+                piece.color = 'y';
+                setPiece = true;
+              }
+            }
+            else if ((i==6 && j>6 && j<12) || (i==7 && j==11) || (i>8 && i<11 && j>9 && j<12)){ // board - green
+              var slot = new THREE.Mesh(slot_geo, mat_green);
+              slot.color = 'g';
+              slot.is_special = true;
+              if (j==11 && i==7) slot.is_special = false;
+              else if (i>8 && i<11 && j>9 && j<12) {
+                var piece = new THREE.Mesh(piece_geo, mat_green)
+                piece.color = 'g';
+                setPiece = true;
+              }
+            }
+            else if ((j==6 && i>6 && i<12) || (j==5 && i==11) || (i>9 && i<12 && j>1 && j<4)){ // board - red
+              var slot = new THREE.Mesh(slot_geo, mat_red);
+              slot.color = 'r';
+              slot.is_special = true;
+              if (j==5 && i==11) slot.is_special = false;
+              else if (i>9 && i<12 && j>1 && j<4){
+                var piece = new THREE.Mesh(piece_geo, mat_red)
+                piece.color = 'r';
+                setPiece = true;
+              }
+            }
+            else if ((j==6 && i>0 && i<6) || (j==7 && i==1) || (i>0 && i<3 && j>8 && j<11)){ // board - blue
+              var slot = new THREE.Mesh(slot_geo, mat_blue);
+              slot.color = 'b';
+              slot.is_special = true;
+              if (j==7 && i==1) slot.is_special = false;
+              else if (i>0 && i<3 && j>8 && j<11){
+                var piece = new THREE.Mesh(piece_geo, mat_blue)
+                piece.color = 'b';
+                setPiece = true;
+              }
+            }
+            else if ((i<5 && (j<5 || j>7)) || (i>7 && (j<5 || j>7)) || (i==6 && j==6)) { // board - dark
+              var slot = new THREE.Mesh(slot_geo, mat_dark);
+              slot.color = 'd';
+              slot.is_special = true;
+            }
+            else {
+              var slot = new THREE.Mesh(slot_geo, mat_clear); // board - clear
+              slot.color = 'c';
+              slot.is_special = false;
+            }
+
+            slot.position.x = i;
+            slot.position.y = j;
+            slot.piece = null;
+            scene.add(slot);
+            slots.push(slot);
+
+            if (setPiece){
+              piece.position.x = i;
+              piece.position.y = j;
+              piece.position.z = 0.4
+              piece.rotation.x = Math.PI/2.0;
+              scene.add(piece)
+              pieces.push(piece)
+              slot.piece = piece; // slot tem peça
+              piece.slot = slot; // slot da peça
+              setPiece = false;
+            }
+          }
+
+        // Point of light settings
+        var light_one =  new THREE.PointLight(0xffffff, 0.6);
+        var light_two =  new THREE.PointLight(0xffffff, 0.6);
+        var light_three =  new THREE.PointLight(0xffffff, 0.6);
+        var light_four =  new THREE.PointLight(0xffffff, 0.6);
+        light_one.position.set(2, 0, 2);
+        light_two.position.set(2, 10, 2);
+        light_three.position.set(12, 2, 2);
+        light_four.position.set(10, 10, 2);
+        scene.add(light_one)
+        scene.add(light_two)
+        scene.add(light_three)
+        scene.add(light_four)
+
+        // Camera settings
+        camera.position.x = 4;
+        camera.position.z = 5;
+        camera.position.y = -3;
+        camera.up = new THREE.Vector3(0,0,1);
+        camera.lookAt(new THREE.Vector3(4, 4, 0));
+
+        // Definition of the center of the board
+        boardcenter = new THREE.Vector3(6.5, 6.5, 0);
+
+        // Definition of raycaster object (picking things with mouse) and mouse variables
+        var raycaster = new THREE.Raycaster();
+        var mouse = new THREE.Vector2(-1000,-1000);
+        var nmouse = new THREE.Vector2(-1000,-1000);
+
+        // Function designed to update cursor position
+        function updateCursor() {
+	         var width = window.innerWidth;
+           var height = window.innerHeight;
+
+           // calculate mouse position in normalized device coordinates
+           // (-1 to +1) for both components
+           nmouse.x = (event.clientX / width) * 2 - 1;
+           nmouse.y = - (event.clientY / height) * 2 + 1;
+           mouse.x = event.clientX -width/2;
+           mouse.y = -event.clientY + height/2;
+
+           raycaster.setFromCamera(nmouse, camera);
+        }
+
+        // Global variables
+        var state = 'preselect';
+        var grab = null;
+        var turn = 'y';
+        var grab_x, grab_y;
+
+        // Function designed to update each state in the game and handle mouse events
+        function state_update(event) {
+          if (event.type != 'paint') // 1st situation
+          {
+            for (var i=0; i<pieces.length; i++) {
+              if (pieces[i].color == 'y')
+                pieces[i].material = mat_yellow;
+              if (pieces[i].color == 'g')
+                pieces[i].material = mat_green;
+              if (pieces[i].color == 'r')
+                pieces[i].material = mat_red;
+              if (pieces[i].color == 'b')
+                pieces[i].material = mat_blue;
+            }
+
+            for (var i=0; i<slots.length; i++){
+              if (slots[i].color == 'y')
+                slots[i].material = mat_yellow;
+              if (slots[i].color == 'g')
+                slots[i].material = mat_green;
+              if (slots[i].color == 'r')
+                slots[i].material = mat_red;
+              if (slots[i].color == 'b')
+                slots[i].material = mat_blue;
+              if (slots[i].color == 'c')
+                slots[i].material = mat_clear;
+              if(slots[i].color == 'd')
+                slots[i].material = mat_dark;
+            }
+
+            updateCursor();
+          }
+
+          if (event.type == 'mousemove' && state == 'preselect') // 2nd situation
+          {
+            intersects = raycaster.intersectObjects(slots);
+            if (intersects.length) {
+    	         if (!intersects[0].object.piece && intersects[0].object.color != 'd')
+                intersects[0].object.material = mat_highlight;
+            }
+
+            intersects = raycaster.intersectObjects(pieces);
+	          if (intersects.length) {
+	             if (intersects[0].object.color == turn)
+                intersects[0].object.material = mat_highlight;
+            }
+          }
+
+          if (event.type == 'mousedown' && state == 'preselect') // 3rd situation
+          {
+	           intersects = raycaster.intersectObjects(pieces)
+	            if (intersects.length) {
+	               if (intersects[0].object.color == turn)
+		             {
+		                 state = 'grab';
+                     grab = intersects[0].object;
+                     grab.position.z = 1.0;
+                     grab_x = grab.position.x;
+                     grab_y = grab.position.y;
+                     return; // sempre retornar se mudou de estado
+                 }
+              }
+          }
+
+          if (event.type == 'mousemove' && state == 'grab') // 4th situation
+          {
+            intersects = raycaster.intersectObjects(slots)
+            if (intersects.length) {
+	             target_slot = intersects[0].object;
+               if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
+                 target_slot.material = mat_highlight;
+                 grab_x = target_slot.position.x;
+                 grab_y = target_slot.position.y;
+		           }
+	          }
+          }
+
+          if (event.type == 'mouseup' && state == 'grab') //5th situation
+          {
+            console.log(event.type);
+            intersects = raycaster.intersectObjects(slots);
+            if (intersects.length) {
+	             target_slot = intersects[0].object;
+               if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
+                 origin_slot = grab.slot
+                 origin_slot.piece = null;
+                 target_slot.piece = grab;
+                 grab.slot = target_slot;
+                 grab.position.x = target_slot.position.x;
+                 grab.position.y = target_slot.position.y;
+                 grab.position.z = 0.5;
+                 state = 'turning';
+		             if (turn == 'y') turn = 'b';
+                 else if (turn == 'b') turn = 'g';
+                 else if (turn == 'g') turn = 'r';
+                 else turn = 'y';
+                 grab = null;
+		             return; // sempre retornar se mudou de estado
+		           }
+	          }
+            state = 'preselect';
+	          origin_slot = grab.slot;
+            grab.position.x = origin_slot.position.x;
+            grab.position.y = origin_slot.position.y;
+            grab.position.z = 0.5;
+            grab = null;
+            return; // sempre retornar se mudou de estado
+          }
+
+          if (event.type=='paint' && state=='turning')
+          {
+            state='preselect';
+            return;
+          }
+
+          if (event.type == 'paint' && state == 'grab') // 6th situation
+          {
+            var vel = 0.1;
+            var x = grab.position.x;
+            var y = grab.position.y;
+            var dirx = grab_x-x;
+            var diry = grab_y-y;
+            var dist = Math.sqrt(dirx*dirx+diry*diry);
+            if (dist > vel) {
+              grab.position.x=x+vel*dirx/dist;
+              grab.position.y=y+vel*diry/dist;
+            }
+	          else {
+	             grab.position.x = grab_x;
+	             grab.position.y = grab_y;
+	          }
+          }
+        }
+
+        // Animation loop
+        function animate() {
+          requestAnimationFrame(animate);
+          state_update(new Event('paint'));
+
+          camera.position.x = 6.5;
+          camera.position.z = 6;
+          camera.position.y = -3;
+          camera.up.set(0,0,1)
+          camera.lookAt(boardcenter);
+
+          renderer.render(scene, camera);
+        }
+
+        window.addEventListener('mousemove', state_update, false);
+        window.addEventListener('mouseup', state_update, false);
+        window.addEventListener('mousedown', state_update, false);
+        animate();
+
+      </script>
+    </body>
+  </html>
