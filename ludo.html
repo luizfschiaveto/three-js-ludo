@@ -23,6 +23,7 @@
         // Definition of geometry for each slot and for each piece of the ludo
         var slot_geo = new THREE.BoxGeometry(1, 1, 0.2);
         var piece_geo = new THREE.ConeGeometry(0.40, 1.25, 8, 1);
+        var piece_geo_dupl = new THREE.ConeGeometry(0.60, 2.5, 8, 1);
 
         // Declarations of vectors in order to get each one of the slots and pieces
         var slots = [];
@@ -35,6 +36,7 @@
         var mat_clear = new THREE.MeshLambertMaterial({color: 0xffff88});
         var mat_dark = new THREE.MeshLambertMaterial({color: 0x000000});
         var mat_highlight = new THREE.MeshBasicMaterial({color:0xAAFFAA});
+        var mat_highlight_dupl = new THREE.MeshBasicMaterial({color:0xfcb203});
 
         // Material definitions: colors for each team in LUDO
         var mat_green = new THREE.MeshLambertMaterial({color: 0x33cc33});
@@ -115,7 +117,9 @@
               scene.add(piece)
               pieces.push(piece)
               slot.piece = piece; // slot tem peça
-              piece.slot = slot; // slot da peça
+              piece.slot = slot;
+              piece.init = false;
+              piece.dupl = false; // slot da peça
               setPiece = false;
             }
           }
@@ -243,7 +247,11 @@
                  target_slot.material = mat_highlight;
                  grab_x = target_slot.position.x;
                  grab_y = target_slot.position.y;
-		           }
+		           }else if(target_slot.piece && target_slot.piece.color == turn && target_slot.piece.init && !target_slot.piece.dupl){
+                 target_slot.piece.material = mat_highlight_dupl;
+                 grab_x = target_slot.position.x;
+                 grab_y = target_slot.position.y;
+               }
 	          }
           }
 
@@ -254,9 +262,27 @@
             if (intersects.length) {
 	             target_slot = intersects[0].object;
                if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
-                 origin_slot = grab.slot
+                 origin_slot = grab.slot;
                  origin_slot.piece = null;
                  target_slot.piece = grab;
+                 grab.slot = target_slot;
+                 if(!grab.slot.piece.init)
+                  grab.slot.piece.init = true;
+                 grab.position.x = target_slot.position.x;
+                 grab.position.y = target_slot.position.y;
+                 grab.position.z = 0.5;
+                 state = 'turning';
+		             if (turn == 'y') turn = 'b';
+                 else if (turn == 'b') turn = 'g';
+                 else if (turn == 'g') turn = 'r';
+                 else turn = 'y';
+                 grab = null;
+		             return; // sempre retornar se mudou de estado
+		           }else if(target_slot.piece && target_slot.piece.color == turn && target_slot.piece.init && !target_slot.piece.dupl){
+                 origin_slot = grab.slot;
+                 origin_slot.piece = null;
+                 target_slot.piece.geometry = piece_geo_dupl;
+                 target_slot.piece.dupl = true;
                  grab.slot = target_slot;
                  grab.position.x = target_slot.position.x;
                  grab.position.y = target_slot.position.y;
@@ -268,7 +294,7 @@
                  else turn = 'y';
                  grab = null;
 		             return; // sempre retornar se mudou de estado
-		           }
+               }
 	          }
             state = 'preselect';
 	          origin_slot = grab.slot;
