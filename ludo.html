@@ -31,6 +31,7 @@
 
         // Global variables
         var setPiece = false;
+        var result_dice = 1;
 
         // Material definitions: colors for the board
         var mat_clear = new THREE.MeshLambertMaterial({color: 0xffff88});
@@ -43,6 +44,7 @@
         var mat_red = new THREE.MeshLambertMaterial({color: 0xff0000});
         var mat_blue = new THREE.MeshLambertMaterial({color: 0x0033cc});
         var mat_yellow = new THREE.MeshLambertMaterial({color: 0xffff00});
+        var mat_gold = new THREE.MeshLambertMaterial({color: 0xf3d802});
 
         // Initial definition of each of the geometries implemented
         for (var i=0; i<13; i++)
@@ -52,6 +54,8 @@
               var slot = new THREE.Mesh(slot_geo, mat_yellow);
               slot.color = 'y';
               slot.is_special = true;
+              slot.final = false;
+              if(i==6 && j==5) slot.final = true;
               if (j==1 && i==5) slot.is_special = false;
               else if (i>1 && i<4 && j>0 && j<3){
                 var piece = new THREE.Mesh(piece_geo, mat_yellow)
@@ -63,6 +67,8 @@
               var slot = new THREE.Mesh(slot_geo, mat_green);
               slot.color = 'g';
               slot.is_special = true;
+              slot.final = false;
+              if(i==6 && j==7) slot.final = true;
               if (j==11 && i==7) slot.is_special = false;
               else if (i>8 && i<11 && j>9 && j<12) {
                 var piece = new THREE.Mesh(piece_geo, mat_green)
@@ -74,6 +80,8 @@
               var slot = new THREE.Mesh(slot_geo, mat_red);
               slot.color = 'r';
               slot.is_special = true;
+              slot.final = false;
+              if(i==7 && j==6) slot.final = true;
               if (j==5 && i==11) slot.is_special = false;
               else if (i>9 && i<12 && j>1 && j<4){
                 var piece = new THREE.Mesh(piece_geo, mat_red)
@@ -85,6 +93,8 @@
               var slot = new THREE.Mesh(slot_geo, mat_blue);
               slot.color = 'b';
               slot.is_special = true;
+              slot.final = false;
+              if(i==5 && j==6) slot.final = true;
               if (j==7 && i==1) slot.is_special = false;
               else if (i>0 && i<3 && j>8 && j<11){
                 var piece = new THREE.Mesh(piece_geo, mat_blue)
@@ -174,6 +184,31 @@
         var turn = 'y';
         var grab_x, grab_y;
 
+        // Function designed in order to find an empty space in each 'house' to store a final piece
+        function search_position(color){
+          if(color == 'y'){
+            if(slots[27].piece == null) return slots[27];
+            else if(slots[28].piece == null) return slots[28];
+            else if(slots[40].piece == null) return slots[40];
+            else if(slots[41].piece == null) return slots[41];
+          }else if(color == 'g'){
+            if(slots[127].piece == null) return slots[127];
+            else if(slots[128].piece == null) return slots[128];
+            else if(slots[140].piece == null) return slots[140];
+            else if(slots[141].piece == null) return slots[141];
+          }else if(color == 'r'){
+            if(slots[132].piece == null) return slots[132];
+            else if(slots[133].piece == null) return slots[133];
+            else if(slots[145].piece == null) return slots[145];
+            else if(slots[146].piece == null) return slots[146];
+          }else if(color == 'b'){
+            if(slots[22].piece == null) return slots[22];
+            else if(slots[23].piece == null) return slots[23];
+            else if(slots[35].piece == null) return slots[35];
+            else if(slots[36].piece == null) return slots[36];
+          }
+        }
+
         // Function designed to update each state in the game and handle mouse events
         function state_update(event) {
           if (event.type != 'paint') // 1st situation
@@ -203,7 +238,6 @@
               if(slots[i].color == 'd')
                 slots[i].material = mat_dark;
             }
-
             updateCursor();
           }
 
@@ -217,7 +251,7 @@
 
             intersects = raycaster.intersectObjects(pieces);
 	          if (intersects.length) {
-	             if (intersects[0].object.color == turn)
+	             if (intersects[0].object.color == turn && (result_dice == 1 || result_dice == 6))
                 intersects[0].object.material = mat_highlight;
             }
           }
@@ -226,7 +260,7 @@
           {
 	           intersects = raycaster.intersectObjects(pieces)
 	            if (intersects.length) {
-	               if (intersects[0].object.color == turn)
+	               if (intersects[0].object.color == turn && (result_dice == 1 || result_dice == 6))
 		             {
 		                 state = 'grab';
                      grab = intersects[0].object;
@@ -272,6 +306,12 @@
                  grab.position.y = target_slot.position.y;
                  grab.position.z = 0.5;
                  state = 'turning';
+                 if(target_slot.final){
+                   //new_slot = slots[27];//search_position(turn);
+                   slots[27].piece = grab.slot.piece;
+                   //target_slot.piece = null;
+                   //slots[27].piece.material = mat_gold;
+                 }
 		             if (turn == 'y') turn = 'b';
                  else if (turn == 'b') turn = 'g';
                  else if (turn == 'g') turn = 'r';
