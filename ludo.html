@@ -183,6 +183,7 @@
         var grab = null;
         var turn = 'y';
         var grab_x, grab_y;
+        slots[27].name = "test"
 
         // Function designed in order to find an empty space in each 'house' to store a final piece
         function search_position(color){
@@ -296,28 +297,23 @@
             if (intersects.length) {
 	             target_slot = intersects[0].object;
                if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
-                 origin_slot = grab.slot;
-                 origin_slot.piece = null;
-                 target_slot.piece = grab;
-                 grab.slot = target_slot;
-                 if(!grab.slot.piece.init)
+                origin_slot = grab.slot;
+                origin_slot.piece = null;
+                target_slot.piece = grab;
+                grab.slot = target_slot;
+                grab.piece = null;
+                if(!grab.slot.piece.init)
                   grab.slot.piece.init = true;
-                 grab.position.x = target_slot.position.x;
-                 grab.position.y = target_slot.position.y;
-                 grab.position.z = 0.5;
-                 state = 'turning';
-                 if(target_slot.final){
-                   //new_slot = slots[27];//search_position(turn);
-                   slots[27].piece = grab.slot.piece;
-                   //target_slot.piece = null;
-                   //slots[27].piece.material = mat_gold;
-                 }
-		             if (turn == 'y') turn = 'b';
-                 else if (turn == 'b') turn = 'g';
-                 else if (turn == 'g') turn = 'r';
-                 else turn = 'y';
-                 grab = null;
-		             return; // sempre retornar se mudou de estado
+                grab.position.x = target_slot.position.x;
+                grab.position.y = target_slot.position.y;
+                grab.position.z = 0.5;
+                state = 'turning';
+                if (turn == 'y') turn = 'b';
+                else if (turn == 'b') turn = 'g';
+                else if (turn == 'g') turn = 'r';
+                else turn = 'y';
+                grab = null;
+                return; // sempre retornar se mudou de estado
 		           }else if(target_slot.piece && target_slot.piece.color == turn && target_slot.piece.init && !target_slot.piece.dupl){
                  origin_slot = grab.slot;
                  origin_slot.piece = null;
