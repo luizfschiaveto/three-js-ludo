@@ -276,6 +276,29 @@
         async function rollDice(){
           var i;
 
+          // rotates sometimes before final result
+          for(i = 0 ; i < 700 ; i = i + 70){
+            console.log(i);    // DEBUG
+            restoreDie();
+            current_die_value = (i/70)%6 + 1;
+            rotateDie();
+            await sleep(i);
+          }
+          restoreDie();    // rotates Die back to neutral position
+          updateNumber();
+          console.log(current_die_value);    // DEBUG
+          rotateDie();    // rotates Die to new position
+        }
+        rollDice();
+
+        // Pular vez
+        function changeTurn(){
+          if (turn == 'y') turn = 'b';
+          else if (turn == 'b') turn = 'g';
+          else if (turn == 'g') turn = 'r';
+          else turn = 'y';
+        }
+
         // Function designed in order to find an empty space in each 'house' to store a final piece
         function search_position(color){
           if(color == 'y'){
