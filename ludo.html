@@ -11,7 +11,6 @@
     <body>
       <script src="js/three.js"></script>
       <script>
-
         // Definition of scene, camera and renderer
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -156,7 +155,7 @@
         camera.lookAt(new THREE.Vector3(4, 4, 0));
 
         // Definition of the center of the board
-        boardcenter = new THREE.Vector3(6.5, 6.5, 0);
+        look = new THREE.Vector3(4.5, 6.5, 0);
 
         // Definition of raycaster object (picking things with mouse) and mouse variables
         var raycaster = new THREE.Raycaster();
@@ -483,36 +482,22 @@
 
         // Background
         function loadBackground(){
-          // var bckg_loader = new THREE.TextureLoader();
-          // bckg_loader.load( 'img/sky.jpg', function( texture ) {
-          // 	backgroundMesh = new THREE.Mesh(
-          // 		new THREE.PlaneGeometry(2, 2, 0),
-          // 			new THREE.MeshBasicMaterial({
-          // 			map: texture
-          // 		})
-          // 	);
-          //
-          // 	backgroundMesh.material.depthTest = false;
-          // 	backgroundMesh.material.depthWrite = false;
-          //
-          // 	backgroundScene = new THREE.Scene();
-          // 	backgroundCamera = new THREE.Camera();
-          // 	backgroundScene.add( backgroundCamera );
-          // 	backgroundScene.add( backgroundMesh );
-          // });
+          var bckg_loader = new THREE.TextureLoader();
+          var bckg_texture = bckg_loader.load( 'img/cat.jpg' );
+          scene.background = bckg_texture;
         }
+        loadBackground();
 
         // Animation loop
         function animate() {
-          loadBackground();
           requestAnimationFrame(animate);
           state_update(new Event('paint'));
 
-          camera.position.x = 6.5;
+          camera.position.x = 4.5;
           camera.position.z = 7.5;
           camera.position.y = -3;
           camera.up.set(0,0,1)
-          camera.lookAt(boardcenter);
+          camera.lookAt(look);
 
           renderer.render(scene, camera);
         }
