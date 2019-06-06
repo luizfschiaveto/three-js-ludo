@@ -28,14 +28,14 @@
         // Declarations of vectors in order to get each one of the slots and pieces
         var slots = [];
         var pieces = [];
+        var dies = [];
 
         // Global variables
         var setPiece = false;
-        var result_dice = 1;
 
         // Material definitions: colors for the board
         var mat_clear = new THREE.MeshLambertMaterial({color: 0xffff88});
-        var mat_dark = new THREE.MeshLambertMaterial({color: 0x000000});
+        var mat_dark = new THREE.MeshLambertMaterial({color: 0x824501});
         var mat_highlight = new THREE.MeshBasicMaterial({color:0xAAFFAA});
         var mat_highlight_dupl = new THREE.MeshBasicMaterial({color:0xfcb203});
 
@@ -193,6 +193,7 @@
         diePlace.position.y = 2;
         diePlace.position.z = 1;
         scene.add(diePlace);
+        dies.push(diePlace);
 
         var dieGeometry = new THREE.CubeGeometry(1,1,1);
         var dieTexture = new THREE.TextureLoader().load( 'textures/die.jpg' );
@@ -234,6 +235,7 @@
         die.position.y = 2;
         die.position.z = 1.6;
         scene.add(die);
+        dies.push(die);
 
         // Generating random number from 1 to 6
         function updateNumber() {
@@ -354,6 +356,8 @@
                 slots[i].material = mat_dark;
             }
 
+            diePlace.material = mat_dark;
+
             updateCursor();
           }
 
@@ -367,8 +371,13 @@
 
             intersects = raycaster.intersectObjects(pieces);
 	          if (intersects.length) {
-	             if (intersects[0].object.color == turn && (result_dice == 1 || result_dice == 6))
+	             if (intersects[0].object.color == turn && (intersects[0].object.init || (current_die_value == 1 || current_die_value == 6)))
                 intersects[0].object.material = mat_highlight;
+            }
+
+            intersects = raycaster.intersectObjects(dies);
+            if (intersects.length) {
+                diePlace.material = mat_highlight_dupl;
             }
           }
 
@@ -378,7 +387,7 @@
             die_array.push(die);
             intersect_die = raycaster.intersectObjects(die_array)
             if (intersects.length) {
-	               if (intersects[0].object.color == turn && (result_dice == 1 || result_dice == 6))
+	               if (intersects[0].object.color == turn && (intersects[0].object.init || (current_die_value == 1 || current_die_value == 6)))
 		             {
 		                 state = 'grab';
                      grab = intersects[0].object;
@@ -417,7 +426,23 @@
             intersects = raycaster.intersectObjects(slots);
             if (intersects.length) {
 	            target_slot = intersects[0].object;
-              if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
+              if(target_slot.final){
+                origin_slot = grab.slot;
+                origin_slot.piece = null;
+                target_slot.piece = grab;
+                grab.slot = target_slot;
+                grab.piece = null;
+                if(!grab.slot.piece.init)
+                  grab.slot.piece.init = true;
+                grab.position.x = target_slot.position.x;
+                grab.position.y = target_slot.position.y;
+                grab.position.z = 0.5;
+                state = 'turning';
+		            changeTurn();
+                grab = null;
+		            return; // sempre retornar se mudou de estado
+              }
+              else if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
                 origin_slot = grab.slot;
                 origin_slot.piece = null;
                 target_slot.piece = grab;
