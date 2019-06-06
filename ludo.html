@@ -183,7 +183,98 @@
         var grab = null;
         var turn = 'y';
         var grab_x, grab_y;
-        slots[27].name = "test"
+        var current_die_value = 6;
+        slots[27].name = "test";
+
+        // Die place
+        var floor_geo = new THREE.BoxGeometry(2, 2, 0.2);
+        var diePlace = new THREE.Mesh(floor_geo, mat_dark);
+        diePlace.position.x = 13;
+        diePlace.position.y = 2;
+        diePlace.position.z = 1;
+        scene.add(diePlace);
+
+        var dieGeometry = new THREE.CubeGeometry(1,1,1);
+        var dieTexture = new THREE.TextureLoader().load( 'textures/die.jpg' );
+        var dieMaterial = new THREE.MeshBasicMaterial( { map: dieTexture } );
+
+        // assign different parts of image to different parts of cube
+        var four = [new THREE.Vector2(0.666, 0), new THREE.Vector2(0.666, 0.5), new THREE.Vector2(1, 0.5), new THREE.Vector2(1, 0)];
+        var three = [new THREE.Vector2(0.666, 0.5), new THREE.Vector2(0.666, 1), new THREE.Vector2(1, 1), new THREE.Vector2(1, 0.5)];
+        var five = [new THREE.Vector2(0.333, 0), new THREE.Vector2(0.333, 0.5), new THREE.Vector2(0.666, 0.5), new THREE.Vector2(0.666, 0)];
+        var two = [new THREE.Vector2(0.333, 0.5), new THREE.Vector2(0.333, 1), new THREE.Vector2(0.666, 1), new THREE.Vector2(0.666, 0.5)];
+        var six = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 0.5), new THREE.Vector2(0.333, .5), new THREE.Vector2(0.333, 0)];
+        var one = [new THREE.Vector2(0, 0.5), new THREE.Vector2(0, 1), new THREE.Vector2(0.333, 1), new THREE.Vector2(0.333, 0.5)];
+
+        //clears UV mapping that already existed
+        dieGeometry.faceVertexUvs[0] = [];
+
+        // must be defined in a counter clockwise direction
+        dieGeometry.faceVertexUvs[0][0] = [four[0], four[1], four[3]];
+        dieGeometry.faceVertexUvs[0][1] = [four[1], four[2], four[3]];
+
+        dieGeometry.faceVertexUvs[0][2] = [three[0], three[1], three[3]];
+        dieGeometry.faceVertexUvs[0][3] = [three[1], three[2], three[3]];
+
+        dieGeometry.faceVertexUvs[0][4] = [ five[0], five[1], five[3] ];
+        dieGeometry.faceVertexUvs[0][5] = [ five[1], five[2], five[3] ];
+
+        dieGeometry.faceVertexUvs[0][6] = [two[0], two[1], two[3]];
+        dieGeometry.faceVertexUvs[0][7] = [two[1], two[2], two[3]];
+
+          
+        dieGeometry.faceVertexUvs[0][8] = [ six[0], six[1], six[3] ];
+        dieGeometry.faceVertexUvs[0][9] = [ six[1], six[2], six[3] ];
+          
+        dieGeometry.faceVertexUvs[0][10] = [ one[0], one[1], one[3] ];
+        dieGeometry.faceVertexUvs[0][11] = [ one[1], one[2], one[3] ];
+
+        die = new THREE.Mesh(dieGeometry, dieMaterial);
+        die.position.x = 13;
+        die.position.y = 2;
+        die.position.z = 1.6;
+        scene.add(die);
+
+        // Generating random number from 1 to 6
+        function updateNumber() {
+          var min = Math.ceil(1);
+          var max = Math.floor(6);
+          current_die_value = Math.floor(Math.random() * (max - min)) + min;
+        }
+        // restoreDie to initial position
+        function restoreDie(){
+          die.rotation.x = 0;
+          die.rotation.y = 0;
+        }
+        // rotateDie
+        function rotateDie(){
+          if(current_die_value == 1){
+            die.rotation.x = -180.0*Math.PI/180.0;
+            die.rotation.y = 0;
+          }
+          else if(current_die_value == 2){
+            die.rotation.x = -90.0*Math.PI/180.0;
+            die.rotation.y = 0;
+          }
+          else if(current_die_value == 3){
+            die.rotation.x = 0;
+            die.rotation.y = 90.0*Math.PI/180.0;
+          }
+          else if(current_die_value == 4){
+            die.rotation.x = 0;
+            die.rotation.y = -90.0*Math.PI/180.0;
+          }
+          else if(current_die_value == 5){
+            die.rotation.x = 90.0*Math.PI/180.0;
+            die.rotation.y = 0;
+          }
+        }
+        // rollDice
+        function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        async function rollDice(){
+          var i;
 
         // Function designed in order to find an empty space in each 'house' to store a final piece
         function search_position(color){
@@ -239,6 +330,7 @@
               if(slots[i].color == 'd')
                 slots[i].material = mat_dark;
             }
+
             updateCursor();
           }
 
@@ -257,10 +349,12 @@
             }
           }
 
-          if (event.type == 'mousedown' && state == 'preselect') // 3rd situation
-          {
-	           intersects = raycaster.intersectObjects(pieces)
-	            if (intersects.length) {
+          if (event.type == 'mousedown' && state == 'preselect'){ // 3rd situation
+            intersects = raycaster.intersectObjects(pieces)
+            die_array = [];
+            die_array.push(die);
+            intersect_die = raycaster.intersectObjects(die_array)
+            if (intersects.length) {
 	               if (intersects[0].object.color == turn && (result_dice == 1 || result_dice == 6))
 		             {
 		                 state = 'grab';
@@ -271,6 +365,10 @@
                      return; // sempre retornar se mudou de estado
                  }
               }
+            if (intersect_die.length) {
+              changeTurn();
+              rollDice();
+            }
           }
 
           if (event.type == 'mousemove' && state == 'grab') // 4th situation
@@ -295,8 +393,8 @@
             console.log(event.type);
             intersects = raycaster.intersectObjects(slots);
             if (intersects.length) {
-	             target_slot = intersects[0].object;
-               if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
+	            target_slot = intersects[0].object;
+              if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
                 origin_slot = grab.slot;
                 origin_slot.piece = null;
                 target_slot.piece = grab;
@@ -308,12 +406,9 @@
                 grab.position.y = target_slot.position.y;
                 grab.position.z = 0.5;
                 state = 'turning';
-                if (turn == 'y') turn = 'b';
-                else if (turn == 'b') turn = 'g';
-                else if (turn == 'g') turn = 'r';
-                else turn = 'y';
-                grab = null;
-                return; // sempre retornar se mudou de estado
+		             changeTurn();
+                 grab = null;
+		             return; // sempre retornar se mudou de estado
 		           }else if(target_slot.piece && target_slot.piece.color == turn && target_slot.piece.init && !target_slot.piece.dupl){
                  origin_slot = grab.slot;
                  origin_slot.piece = null;
@@ -324,10 +419,7 @@
                  grab.position.y = target_slot.position.y;
                  grab.position.z = 0.5;
                  state = 'turning';
-		             if (turn == 'y') turn = 'b';
-                 else if (turn == 'b') turn = 'g';
-                 else if (turn == 'g') turn = 'r';
-                 else turn = 'y';
+		             changeTurn();
                  grab = null;
 		             return; // sempre retornar se mudou de estado
                }
@@ -341,9 +433,9 @@
             return; // sempre retornar se mudou de estado
           }
 
-          if (event.type=='paint' && state=='turning')
-          {
+          if (event.type=='paint' && state=='turning'){
             state='preselect';
+            rollDice();
             return;
           }
 
@@ -366,13 +458,35 @@
           }
         }
 
+        // Background
+        function loadBackground(){
+          // var bckg_loader = new THREE.TextureLoader();
+          // bckg_loader.load( 'img/sky.jpg', function( texture ) {
+          // 	backgroundMesh = new THREE.Mesh(
+          // 		new THREE.PlaneGeometry(2, 2, 0),
+          // 			new THREE.MeshBasicMaterial({
+          // 			map: texture
+          // 		})
+          // 	);
+          //
+          // 	backgroundMesh.material.depthTest = false;
+          // 	backgroundMesh.material.depthWrite = false;
+          //
+          // 	backgroundScene = new THREE.Scene();
+          // 	backgroundCamera = new THREE.Camera();
+          // 	backgroundScene.add( backgroundCamera );
+          // 	backgroundScene.add( backgroundMesh );
+          // });
+        }
+
         // Animation loop
         function animate() {
+          loadBackground();
           requestAnimationFrame(animate);
           state_update(new Event('paint'));
 
           camera.position.x = 6.5;
-          camera.position.z = 6;
+          camera.position.z = 7.5;
           camera.position.y = -3;
           camera.up.set(0,0,1)
           camera.lookAt(boardcenter);
