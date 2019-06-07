@@ -31,7 +31,7 @@
 
         // Global variables
         var setPiece = false;
-
+        
         // Material definitions: colors for the board
         var mat_clear = new THREE.MeshLambertMaterial({color: 0xffff88});
         var mat_dark = new THREE.MeshLambertMaterial({color: 0x824501});
@@ -183,7 +183,6 @@
         var turn = 'y';
         var grab_x, grab_y;
         var current_die_value = 6;
-        slots[27].name = "test";
 
         // Die place
         var floor_geo = new THREE.BoxGeometry(2, 2, 0.2);
@@ -428,18 +427,14 @@
               if(target_slot.final){
                 origin_slot = grab.slot;
                 origin_slot.piece = null;
-                target_slot.piece = grab;
                 grab.slot = target_slot;
-                grab.piece = null;
-                if(!grab.slot.piece.init)
-                  grab.slot.piece.init = true;
                 grab.position.x = target_slot.position.x;
                 grab.position.y = target_slot.position.y;
                 grab.position.z = 0.5;
                 state = 'turning';
-		            changeTurn();
+                changeTurn();
                 grab = null;
-		            return; // sempre retornar se mudou de estado
+                return; // sempre retornar se mudou de estado
               }
               else if ((!target_slot.is_special || (target_slot.is_special && target_slot.color == turn)) && !target_slot.piece) {
                 origin_slot = grab.slot;
